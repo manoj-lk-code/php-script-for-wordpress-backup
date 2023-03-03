@@ -2,6 +2,7 @@
 ini_set('max_execution_time', 0); // set no timeout limit
 $log_file = 'backup.log'; // set log file name and path
 
+
 // get database credentials from wp-config.php file
 $wp_config_file = 'wp-config.php';
 $config = file_get_contents($wp_config_file);
