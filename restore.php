@@ -21,7 +21,7 @@ preg_match("/define\(\s*'DB_PASSWORD',\s*'(.+)'\s*\);/", $old_config, $db_passwo
 preg_match("/define\(\s*'DB_HOST',\s*'(.+)'\s*\);/", $old_config, $db_host_match);
 
 // Update wp-config.php with database details
-$config_file = file_get_contents('old-wp-config.php');
+$config_file = file_get_contents('wp-config.php');
 $config_file = preg_replace("/define\(\s*'DB_NAME',\s*'(.+)'\s*\);/", "define('DB_NAME', '{$db_name_match[1]}');", $config_file);
 $config_file = preg_replace("/define\(\s*'DB_USER',\s*'(.+)'\s*\);/", "define('DB_USER', '{$db_user_match[1]}');", $config_file);
 $config_file = preg_replace("/define\(\s*'DB_PASSWORD',\s*'(.+)'\s*\);/", "define('DB_PASSWORD', '{$db_password_match[1]}');", $config_file);
@@ -37,8 +37,7 @@ file_put_contents($log_file, "Drop Command Output: \n{$drop_output}\n\n", FILE_A
 $sql_file = shell_exec('ls backup-wp-db-*.sql');
 $import_cmd = "mysql -u {$db_user_match[1]} -p{$db_password_match[1]} -h {$db_host_match[1]} {$db_name_match[1]} < {$sql_file} 2>&1";
 $import_output = shell_exec($import_cmd);
-file_put_contents($log_file, "Import Command Output: \n{$import_output}\n\n", FILE_APPEND);
-
+file_put_contents($log_file, "Database has been imported. Please ingore MySQL insecure password warning. \n{$import_output}\n\n", FILE_APPEND);
 
 // Log execution
 $timestamp = date('Y-m-d H:i:s');
