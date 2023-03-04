@@ -49,3 +49,8 @@ When executed, `restore.php` performs the following tasks:
 5. Drops all tables from the fresh WordPress instance database and imports the new database SQL with the file name `backup-wp-db-$random_string.sql`.
 
 That's it! Although code to remove the zip and SQL files is not included, you can manually remove them as they are no longer needed.
+
+
+Credits: This code is created using ChatGPT and inspired from the article by [Manoj](https://manojlk.work):
+
+[How to migrate WordPress manually but faster & better.](https://wpzonify.com/how-to-migrate-your-wordpress-site-manually/)
