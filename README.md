@@ -50,7 +50,6 @@ When executed, `restore.php` performs the following tasks:
 
 That's it! Although code to remove the zip and SQL files is not included, you can manually remove them as they are no longer needed.
 
+# Credits
 
-Credits: This code is created using ChatGPT and inspired from the article by [Manoj](https://manojlk.work):
-
-[How to migrate WordPress manually but faster & better.](https://wpzonify.com/how-to-migrate-your-wordpress-site-manually/)
+This code is created using ChatGPT and inspired from the article by [Manoj](https://manojlk.work): Read article: [How to migrate WordPress manually but faster & better.](https://wpzonify.com/how-to-migrate-your-wordpress-site-manually/)
