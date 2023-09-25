@@ -1,0 +1,162 @@
+<?php
+// Enable/Disable Options (1 to enable, 0 to disable)
+$enable_createBackupFolder = 1;
+$enable_runWordPressBackups = 1;
+$enable_renameHtaccess = 1;
+$enable_createDefaultHtaccess = 1;
+$enable_updateWordPressPlugins = 1;
+$enable_updateWordPressThemes = 1;
+$enable_updateWordPress = 1;
+$enable_blockPHPExecutionInUploads = 1;
+
+date_default_timezone_set('IST'); // Set your desired timezone
+
+function createBackupFolder()
+{
+    if (!is_dir('backuplift')) {
+        mkdir('backuplift');
+    }
+}
+
+function runWordPressBackups()
+{
+    global $targetDir;
+
+    $backupDir = 'backuplift/' . date('d-M-Y');
+    if (!file_exists($backupDir)) {
+        mkdir($backupDir, 0777, true);
+    }
+
+    // Backup files
+    $randomMd5Hash = md5(uniqid());
+    exec("zip -r $backupDir/files-$randomMd5Hash.zip *");
+    writeLog('execution', 'Files backed up.');
+
+    // WordPress database backup
+    $output = shell_exec("wp db export $backupDir/wp-database-$randomMd5Hash.sql");
+    writeLog('execution', 'WordPress database backup: ' . $output);
+}
+
+function renameHtaccess()
+{
+    rename('.htaccess', '.htaccess-bk');
+    writeLog('execution', 'htaccess renamed.');
+}
+
+function createDefaultHtaccess()
+{
+    $htaccessContent = "# BEGIN WordPress\n
+    RewriteEngine On\n
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]\n
+    RewriteBase /\n
+    RewriteRule ^index\.php$ - [L]\n
+    RewriteCond %{REQUEST_FILENAME} !-f\n
+    RewriteCond %{REQUEST_FILENAME} !-d\n
+    RewriteRule . /index.php [L]\n
+    # END WordPress";
+
+    file_put_contents('.htaccess', $htaccessContent);
+    writeLog('execution', 'Default htaccess created.');
+}
+
+function updateWordPressPlugins()
+{
+    $output = shell_exec('wp plugin install $(wp plugin list --field=name) --force');
+    writeLog('execution', 'WordPress plugins update: ' . $output);
+}
+
+function updateWordPressThemes()
+{
+    $output = shell_exec('wp theme install $(wp theme list --field=name) --force');
+    writeLog('execution', 'WordPress themes update: ' . $output);
+}
+
+function updateWordPress()
+{
+    $output = shell_exec('wp core download --skip-content --force');
+    writeLog('execution', 'WordPress update: ' . $output);
+}
+
+function deleteWordPressFiles()
+{
+    $files = glob('wp-*');
+    foreach ($files as $file) {
+        if (is_dir($file) && $file !== 'wp-content') {
+            rrmdir($file);
+        } elseif (is_file($file) && $file !== 'wp-config.php') {
+            unlink($file);
+        }
+    }
+    writeLog('execution', 'WordPress files deleted.');
+}
+
+function rrmdir($dir)
+{
+    if (is_dir($dir)) {
+        $objects = scandir($dir);
+        foreach ($objects as $object) {
+            if ($object != '.' && $object != '..') {
+                if (is_dir($dir . '/' . $object)) {
+                    rrmdir($dir . '/' . $object);
+                } else {
+                    unlink($dir . '/' . $object);
+                }
+            }
+        }
+        rmdir($dir);
+    }
+}
+
+function writeLog($logType, $message)
+{
+    $logFile = 'backuplift/logs-' . date('d-M-Y') . '.log';
+    $logMessage = "[" . date('H:i:s') . "][$logType] $message\n";
+    file_put_contents($logFile, $logMessage, FILE_APPEND | LOCK_EX);
+}
+
+// Run selected options
+$selectedOptions = [
+    $enable_createBackupFolder,
+    $enable_runWordPressBackups,
+    $enable_renameHtaccess,
+    $enable_createDefaultHtaccess,
+    $enable_updateWordPressPlugins,
+    $enable_updateWordPressThemes,
+    $enable_updateWordPress,
+    $enable_blockPHPExecutionInUploads
+];
+
+foreach ($selectedOptions as $index => $option) {
+    if ($option) {
+        switch ($index + 1) {
+            case 1:
+                createBackupFolder();
+                break;
+            case 2:
+                runWordPressBackups();
+                break;
+            case 3:
+                renameHtaccess();
+                break;
+            case 4:
+                createDefaultHtaccess();
+                break;
+            case 5:
+                updateWordPressPlugins();
+                break;
+            case 6:
+                updateWordPressThemes();
+                deleteWordPressFiles(); // Delete WordPress files after updating themes
+                break;
+            case 7:
+                updateWordPress();
+                break;
+            case 8:
+                blockPHPExecutionInUploads();
+                break;
+            default:
+                error_log("Invalid option: " . ($index + 1), 3, 'backuplift/error.log');
+        }
+    }
+}
+?>
